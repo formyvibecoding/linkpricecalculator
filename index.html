@@ -12,20 +12,26 @@
       margin: 0;
       min-height: 100vh;
       color: #222;
-      text-align: center;
+      /* 保持居中，但把垂直对齐改成顶部对齐 */
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       padding: 20px;
       box-sizing: border-box;
-    }    /* 主卡片容器 */
+    }
+
+    /* 主卡片容器 */
     .container {
       background: #fff;
       border-radius: 20px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-      max-width: none;
-      width: auto;
+
+      /* 关键三行 */
+      flex: 0 0 auto;  /* 关闭 flex 的自动拉伸 */
+      width: auto;     /* 宽度随内容走 */
       display: inline-block;
+
+      /* 其它属性 */
       min-width: 340px;
       padding: 24px 36px 36px 36px;
       position: relative;
@@ -297,6 +303,56 @@
       .container { width: 98vw; min-width: 0; }
       body { text-align: initial; }
     }
+    
+    /* 通知提示样式 */
+    .notification {
+      position: fixed;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: left;
+      gap: 12px;
+      background: #fff;
+      border-radius: 10px;
+      padding: 16px 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      max-width: 600px;
+      width: auto;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+      align-items: center;
+    }
+    
+    .notification.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
+    }
+    
+    .notification.hidden {
+      opacity: 0;
+      transform: translateX(-50%) translateY(20px);
+    }
+    
+    .notification-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      height: 32px;
+      border-radius: 16px;
+      background: #ffe9e9;
+      color: #e74c3c;
+    }
+    
+    .notification-message {
+      font-size: 0.95rem;
+      color: #333;
+      text-align: left;
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
@@ -474,7 +530,18 @@
         </svg>明細を出力
       </button>
     </div>
-  </div>  <script>
+  </div>  <!-- 追加：通知提示 -->
+  <div id="notification" class="notification hidden">
+    <div class="notification-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+    </div>
+    <div id="notification-message" class="notification-message">通知内容</div>
+  </div>
+  <script>
     const robot = document.getElementById('robotCount');
     const task = document.getElementById('taskAssign');
     const traffic = document.getElementById('trafficControl');
@@ -484,6 +551,8 @@
     const resultsItems = document.getElementById('resultsItems');
     const resultsTotalPrice = document.getElementById('resultsTotalPrice');
     const exportBtn = document.getElementById('exportExcelBtn');
+    const notification = document.getElementById('notification');
+    const notificationMessage = document.getElementById('notification-message');
 
     // 保存初始值，用于确定用户是否有修改
     const initialValues = {
@@ -493,6 +562,19 @@
       simple: 0,
       complex: 0
     };
+    
+    // 显示通知函数
+    function showNotification(message) {
+      notificationMessage.textContent = message;
+      notification.classList.remove('hidden');
+      notification.classList.add('show');
+      
+      // 3秒后自动隐藏
+      setTimeout(() => {
+        notification.classList.remove('show');
+        notification.classList.add('hidden');
+      }, 3000);
+    }
 
     function calculate() {
       const rc = parseInt(robot.value) || 0;
@@ -505,10 +587,12 @@
       if (taskc > rc) {
         task.value = rc;
         taskc = rc;
+        showNotification('タスク指示機能はロボット基台数本機能の台数を超えることはできません。');
       }
       if (trafficc > rc) {
         traffic.value = rc;
         trafficc = rc;
+        showNotification('優先制御機能はロボット基本機能の台数を超えることはできません。');
       }
 
       // 1. 基本機能归零，其他机器人功能也归零
@@ -620,13 +704,53 @@
           }
         }
         // 限制最大值不能超过基本機能
-        if (val > robotVal) val = robotVal;
+        if (val > robotVal) {
+          val = robotVal;
+          showNotification('優先制御機能はロボット基本機能の台数を超えることはできません。');
+        }
+        // 检查机器人数量是否足够
+        if (robotVal <= 1 && val > 0) {
+          val = 0;
+          showNotification('優先制御機能を利用するには、最低2台以上のロボットが必要です。');
+        }
       } else if (id === 'taskAssign') {
         const robotVal = parseInt(document.getElementById('robotCount').value) || 0;
         val += delta;
         if (val < 0) val = 0;
         // 限制最大值不能超过基本機能
-        if (val > robotVal) val = robotVal;
+        if (val > robotVal) {
+          val = robotVal;
+          showNotification('タスク指示機能はロボット基本機能の台数を超えることはできません。');
+        }
+        // 检查机器人数量是否为0
+        if (robotVal === 0 && val > 0) {
+          val = 0;
+          showNotification('タスク指示機能を利用するには、まずロボット基本機能を設定してください。');
+        }
+      } else if (id === 'robotCount') {
+        val += delta;
+        if (val < 0) val = 0;
+        
+        // 检查是否影响タスク指示機能
+        const taskVal = parseInt(document.getElementById('taskAssign').value) || 0;
+        if (val < taskVal) {
+          document.getElementById('taskAssign').value = val;
+          if (val === 0) {
+            showNotification('ロボット基本機能がゼロの場合、タスク指示機能も利用できません。');
+          } else {
+            showNotification('タスク指示機能はロボット基本機能の台数を超えることはできません。');
+          }
+        }
+        
+        // 检查是否影响優先制御機能
+        const trafficVal = parseInt(document.getElementById('trafficControl').value) || 0;
+        if (val <= 1 && trafficVal > 0) {
+          document.getElementById('trafficControl').value = 0;
+          showNotification('優先制御機能を利用するには、最低2台以上のロボットが必要です。');
+        } else if (val < trafficVal) {
+          document.getElementById('trafficControl').value = val;
+          showNotification('優先制御機能はロボット基本機能の台数を超えることはできません。');
+        }
       } else {
         val += delta;
         if (val < 0) val = 0;
@@ -634,6 +758,63 @@
       input.value = val;
       input.dispatchEvent(new Event('input'));
     }
+
+    // 为優先制御機能添加特殊的输入限制，防止手动输入数字"1"
+    traffic.addEventListener('input', function(e) {
+      const val = parseInt(e.target.value) || 0;
+      const robotVal = parseInt(robot.value) || 0;
+      
+      if (val === 1) {
+        // 如果用户输入1，自动调整为0
+        e.target.value = 0;
+        showNotification('優先制御機能では「1」は設定できません。最低2台から利用可能です。');
+      } else if (val > robotVal) {
+        // 如果超过机器人数量
+        e.target.value = robotVal;
+        showNotification('優先制御機能はロボット基本機能の台数を超えることはできません。');
+      } else if (robotVal <= 1 && val > 0) {
+        // 如果机器人数量不足
+        e.target.value = 0;
+        showNotification('優先制御機能を利用するには、最低2台以上のロボットが必要です。');
+      }
+    });
+    
+    // 为タスク指示機能添加输入限制
+    task.addEventListener('input', function(e) {
+      const val = parseInt(e.target.value) || 0;
+      const robotVal = parseInt(robot.value) || 0;
+      
+      if (val > robotVal) {
+        e.target.value = robotVal;
+        showNotification('タスク指示機能はロボット基本機能の台数を超えることはできません。');
+      } else if (robotVal === 0 && val > 0) {
+        e.target.value = 0;
+        showNotification('タスク指示機能を利用するには、まずロボット基本機能を設定してください。');
+      }
+    });
+    
+    // 为ロボット基本機能添加输入限制
+    robot.addEventListener('input', function(e) {
+      const val = parseInt(e.target.value) || 0;
+      const taskVal = parseInt(task.value) || 0;
+      const trafficVal = parseInt(traffic.value) || 0;
+      
+      if (val < taskVal) {
+        task.value = val;
+        task.dispatchEvent(new Event('input'));
+        showNotification('タスク指示機能はロボット基本機能の台数を超えることはできません。');
+      }
+      
+      if (val <= 1 && trafficVal > 0) {
+        traffic.value = 0;
+        traffic.dispatchEvent(new Event('input'));
+        showNotification('優先制御機能を利用するには、最低2台以上のロボットが必要です。');
+      } else if (val < trafficVal) {
+        traffic.value = val;
+        traffic.dispatchEvent(new Event('input'));
+        showNotification('優先制御機能はロボット基本機能の台数を超えることはできません。');
+      }
+    });
 
     [robot, task, traffic, simple, complex].forEach(input => {
       input.addEventListener('input', calculate);
