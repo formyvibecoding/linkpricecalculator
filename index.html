@@ -2,9 +2,31 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>LINK ランニング費用</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">  <style>
+    /* iOS 特定修复 */
+    * {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+    }
+    
+    /* 防止 iOS 上的输入自动放大 */
+    input, select, textarea {
+      font-size: 16px; /* iOS 会放大小于 16px 的输入框 */
+    }
+    
+    /* 修复 iOS 按钮样式 */
+    button {
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    
+    /* 修复 iOS 上的滚动问题 */
+    body {
+      -webkit-overflow-scrolling: touch;
+    }
+    
     /* 页面基础设置 */
     body {
       font-family: 'Noto Sans', sans-serif;
@@ -20,8 +42,7 @@
       box-sizing: border-box;
     }
 
-    /* 主卡片容器 */
-    .container {
+    /* 主卡片容器 */    .container {
       background: #fff;
       border-radius: 20px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.08);
@@ -35,7 +56,11 @@
       min-width: 340px;
       padding: 24px 36px 36px 36px;
       position: relative;
-    }    /* 结果区域 */
+      /* iOS 安全区域适配 */
+      padding-left: calc(36px + env(safe-area-inset-left));
+      padding-right: calc(36px + env(safe-area-inset-right));
+      padding-bottom: calc(36px + env(safe-area-inset-bottom));
+    }/* 结果区域 */
     .results-panel {
       background: #fff;
       width: 300px;
@@ -160,9 +185,11 @@
       white-space: nowrap;
       letter-spacing: 0.5px;
     }
-    /* 数量选择器样式（仿亚马逊） */
-    .quantity-selector {
+    /* 数量选择器样式（仿亚马逊） */    .quantity-selector {
+      display: -webkit-inline-flex;
       display: inline-flex;
+      -webkit-box-align: center;
+      -webkit-align-items: center;
       align-items: center;
       border: 1px solid #e5e5ea;
       border-radius: 20px;
@@ -265,15 +292,19 @@
       letter-spacing: -1.5px;
       text-align: right;
     }
-    /* 主体左右分栏布局 */
-    .main-flex {
+    /* 主体左右分栏布局 */    .main-flex {
+      display: -webkit-box;
+      display: -webkit-flex;
       display: flex;
       gap: 32px;
+      -webkit-box-pack: justify;
+      -webkit-justify-content: space-between;
       justify-content: space-between;
+      -webkit-box-align: start;
+      -webkit-align-items: flex-start;
       align-items: flex-start;
       margin-bottom: 36px;
-    }
-    .main-col {
+    }    .main-col {
       flex: 1 1 0;
       background: #f9f9fa;
       border-radius: 16px;
@@ -286,7 +317,7 @@
       width: 100%;
       max-width: 420px; /* 限制最大宽度，防止过宽 */
       box-sizing: border-box;
-    }    /* SVG 插图样式 */
+    }/* SVG 插图样式 */
     .main-svg {
       width: 120px;
       height: 120px;
@@ -294,24 +325,27 @@
       display: block;
       filter: drop-shadow(0 4px 16px rgba(0,113,227,0.10));
       /*border-radius: 16px;
-      background: linear-gradient(135deg, #eaf0ff 60%, #fff 100%);*/
-    }
+      background: linear-gradient(135deg, #eaf0ff 60%, #fff 100%);*/    }
     /* 响应式布局 */
     @media (max-width: 800px) {
-      .main-flex { flex-direction: column; gap: 18px; }
+      .main-flex { 
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+        -webkit-flex-direction: column;
+        flex-direction: column;
+        gap: 18px;
+      }
       .main-col { width: 100%; }
       .container { width: 98vw; min-width: 0; }
       body { text-align: initial; }
     }
-    
-    /* 通知提示样式 */
+      /* 通知提示样式 */
     .notification {
       position: fixed;
       top: 30px;
       left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      align-items: left;
+      transform: translateX(-50%);      display: flex;
+      align-items: center;
       gap: 12px;
       background: #fff;
       border-radius: 10px;
@@ -881,12 +915,35 @@
       a.download = `LINK ランニング費用 ${formattedDate}.xlsx`;
       document.body.appendChild(a);
       a.click();
-      
-      // 清理
+        // 清理
       setTimeout(() => {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(a.href);
       }, 0);
+    });
+    
+    // 添加 iOS 调试辅助功能
+    window.addEventListener('load', function() {
+      // 创建调试面板（仅在查询参数中包含 debug=true 时显示）
+      if (window.location.search.includes('debug=true')) {
+        const debugDiv = document.createElement('div');
+        debugDiv.style.position = 'fixed';
+        debugDiv.style.bottom = '10px';
+        debugDiv.style.left = '10px';
+        debugDiv.style.background = 'rgba(0,0,0,0.7)';
+        debugDiv.style.color = 'white';
+        debugDiv.style.padding = '10px';
+        debugDiv.style.fontSize = '12px';
+        debugDiv.style.zIndex = '9999';
+        debugDiv.style.borderRadius = '5px';
+        debugDiv.innerHTML = `
+          <div>设备宽度: ${window.innerWidth}px</div>
+          <div>设备高度: ${window.innerHeight}px</div>
+          <div>设备像素比: ${window.devicePixelRatio}</div>
+          <div>User Agent: ${navigator.userAgent}</div>
+        `;
+        document.body.appendChild(debugDiv);
+      }
     });
   </script>
 </body>
