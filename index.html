@@ -5,400 +5,414 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>LINK ランニング費用</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">  <style>
-    /* iOS 特定修复 */
-    * {
-      -webkit-tap-highlight-color: transparent;
-      -webkit-touch-callout: none;
-    }
-    
-    /* 防止 iOS 上的输入自动放大 */
-    input, select, textarea {
-      font-size: 16px; /* iOS 会放大小于 16px 的输入框 */
-    }
-    
-    /* 修复 iOS 按钮样式 */
-    button {
-      -webkit-appearance: none;
-      appearance: none;
-    }
-    
-    /* 修复 iOS 上的滚动问题 */
-    body {
-      -webkit-overflow-scrolling: touch;
-    }
-    
-    /* 页面基础设置 */
-    body {
-      font-family: 'Noto Sans', sans-serif;
-      background: #f6f7f9;
-      margin: 0;
-      min-height: 100vh;
-      color: #222;
-      /* 保持居中，但把垂直对齐改成顶部对齐 */
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 20px;
-      box-sizing: border-box;
-    }
+    /* Global Resets */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
 
-    /* 主卡片容器 */    .container {
-      background: #fff;
-      border-radius: 20px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-      box-sizing: border-box;
+/* Prevent iOS input zoom */
+input, select, textarea {
+  font-size: 16px;
+}
 
-      /* 关键三行 */
-      flex: 0 1 auto;  /* 关闭 flex 的自动拉伸 */
-      width: auto;     /* 宽度随内容走 */
-      max-width: 100%; /* 限制最大宽度，防止过宽 */
+/* Remove default button appearance */
+button {
+  appearance: none;
+}
 
-      /* 其它属性 */
-      min-width: 340px;
-      padding: 24px 36px 36px 36px; /* 上下左右内边距 */
-      position: relative;
-      /* iOS 安全区域适配 */
-      padding-left: calc(36px + env(safe-area-inset-left));
-      padding-right: calc(36px + env(safe-area-inset-right));
-      padding-bottom: calc(36px + env(safe-area-inset-bottom));
-    }/* 结果区域 */
-    .results-panel {
-      background: #fff;
-      width: 300px;
-      padding: 24px;
-      border-radius: 20px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-      display: none;
-      flex-direction: column;
-      z-index: 100;
-      text-align: left;
-      transition: all 0.3s ease;
-    }
-    
-    /* 媒体查询：大屏幕布局 (>= 1522px) */
-    @media (min-width: 1522px) {
-      .results-panel {
-        position: absolute; /* 绝对定位 */
-        left: calc(100% + 30px); /* 结果区域距离右侧的间距 */
-        bottom: 0; /* 结果区域距离底部的间距 */ 
-      }
-    }
-    
-    /* 媒体查询：小屏幕布局 (< 1522px) */
-    @media (max-width: 1521px) {
-      .results-panel {
-        position: absolute;
-        top: calc(100% + 30px);
-        right: 0; /* 与container右边缘对齐 */
-      }
-    }
-    
-    .results-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-      margin-bottom: 16px;
-      color: #333;
-    }
-      .results-group {
-      margin-bottom: 16px;
-    }
-    
-    .results-group-title {
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #444;
-      padding-bottom: 4px;
-      border-bottom: 1px solid #eee;
-    }
-    
-    .results-item {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-      font-size: 0.95rem;
-    }
-    
-    .results-item.total {
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 1px solid #eee;
-      font-weight: 700;
-      font-size: 1.1rem;
-    }
-    /* 标题样式 */
-    .main-title {
-      font-size: 1.6rem;
-      font-weight: 700;
-      margin-bottom: 32px;
-      letter-spacing: -1px;
-      color: #181818;
-      text-align: center;
-    }
-    .subtitle-note {
-      font-size: 1rem;
-      color: #7a869a;
-      margin-bottom: 25px;
-      margin-top: -25px;
-      text-align: center;
-    }
-    /* 表单标签样式 */
-    .item-row {
-      display: inline-flex;
-      justify-content: space-between;
-      align-items: top;
-      padding: 10px 0;
-      border-bottom: 1px solid #ececec;
-      width: 100%;
-      gap: 16px;
-    }
-    .item-row:last-of-type {
-      border-bottom: none;
-    }
-    .item-labels {
-      text-align: left;
-      flex: 1;
-    }
-    .item-title {
-      font-size: 1rem;
-      font-weight: 500;
-      color: #222;
-    }
-    .item-desc {
-      font-size: 0.95em;
-      color: #8a94a6;
-      font-weight: 400;
-      line-height: 1.3;
-      margin-top: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .item-controls {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .item-price {
-      font-size: 1.08em;
-      color: #0071e3;
-      font-weight: 600;
-      white-space: nowrap;
-      letter-spacing: 0.5px;
-    }
-    /* 数量选择器样式（仿亚马逊） */    .quantity-selector {
-      display: -webkit-inline-flex;
-      display: inline-flex;
-      -webkit-box-align: center;
-      -webkit-align-items: center;
-      align-items: center;
-      border: 1px solid #e5e5ea;
-      border-radius: 20px;
-      background: #f9f9fa;
-      overflow: hidden;
-      height: 30px;
-      width: auto;
-      min-width: 0;
-      max-width: none;
-    }
-    .quantity-btn {
-      width: 36px;
-      height: 38px;
-      border: none;
-      background: none;
-      font-size: 1.3em;
-      color: #0071e3;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.15s;
-      user-select: none;
-    }
-    .quantity-btn:active {
-      background: #eaf0ff;
-    }
-    .quantity-input {
-      width: 24px;
-      border: none;
-      background: transparent;
-      text-align: center;
-      font-size: 1rem;
-      font-weight: 500;
-      color: #181818;
-      outline: none;
-      padding: 0 4px;
-    }
-    .quantity-input::-webkit-outer-spin-button,
-    .quantity-input::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    .quantity-input[type=number] {
-      appearance: textfield;
-      -moz-appearance: textfield;
-    }
-    /* 分组容器 */
-    .group {
-      padding: 24px 0 0 0;
-      border-top: 1px solid #ececec;
-      margin-top: 24px;
-      width: 100%;
-    }
-    .group:first-of-type {
-      border-top: none;
-      padding-top: 0;
-      margin-top: 0;
-    }
-    /* 分组标题 */
-    .group-title {
-      font-size: 1.13em;
-      font-weight: 700;
-      color: #222;
-      margin-bottom: 14px;
-      margin-top: 0;
-      letter-spacing: -0.5px;
-      padding-left: 2px;
-      text-align: left;
-    }
-    @media (max-width: 600px) {
-  .item-row {
-    flex-direction: column;  /* 在窄屏上改成垂直排列 */
+/* Smooth scrolling on iOS */
+body {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Base Styles */
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+  font-family: 'Noto Sans', sans-serif;
+  background: #f6f7f9;
+  color: #222;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  text-align: left;
+}
+
+/* Main Container */
+.container {
+  flex: 0 1 auto;
+  width: auto;
+  max-width: 100%;
+  padding: 24px 36px;
+  padding-left: calc(36px + env(safe-area-inset-left));
+  padding-right: calc(36px + env(safe-area-inset-right));
+  padding-bottom: calc(36px + env(safe-area-inset-bottom));
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* Results Panel */
+.results-panel {
+  display: none;
+  position: absolute;
+  width: 300px;
+  padding: 24px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+  flex-direction: column;
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+@media (min-width: 1740px) {
+  .results-panel {
+    left: calc(100% + 30px);
+    bottom: 0;
   }
 }
-    /* 说明卡片 */
-    .note-card {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      background: #f5f7fa;
-      border-radius: 12px;
-      padding: 16px 18px;
-      margin: 36px 0 0 0;
-      font-size: 1em;
-      color: #4a5874;
-      box-shadow: 0 2px 8px 0 rgba(90,110,140,0.04);
-    }
-    .note-card svg {
-      flex-shrink: 0;
-      width: 24px;
-      height: 24px;
-      margin-top: 2px;
-      color: #0071e3;
-      opacity: 0.85;
-    }
-    .note-card div {
-      text-align: left;
-    }
-    /* 合計価格样式 */
-    .price {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: #0071e3;
-      margin-top: 20px;
-      letter-spacing: -1.5px;
-      text-align: right;
-    }
-    /* 主体左右分栏布局 */    .main-flex {
-      display: -webkit-box;
-      display: -webkit-flex;
-      display: flex;
-      gap: 32px;
-      -webkit-box-pack: justify;
-      -webkit-justify-content: space-between;
-      justify-content: space-between;
-      -webkit-box-align: start;
-      -webkit-align-items: flex-start;
-      align-items: flex-start;
-      margin-bottom: 36px;
-    }    .main-col {
-      flex: 1 1 0;
-      background: #f9f9fa;
-      border-radius: 16px;
-      box-shadow: 0 2px 8px 0 rgba(90,110,140,0.04);
-      padding: 28px 24px 24px 24px; /* 恢复左右 padding，防止内容突破 */
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-width: 0;
-      width: 100%;
-      max-width: 420px; /* 限制最大宽度，防止过宽 */
-      box-sizing: border-box;
-    }/* SVG 插图样式 */
-    .main-svg {
-      width: 120px;
-      height: 120px;
-      margin-bottom: 24px;
-      display: block;
-      filter: drop-shadow(0 4px 16px rgba(0,113,227,0.10));
-      /*border-radius: 16px;
-      background: linear-gradient(135deg, #eaf0ff 60%, #fff 100%);*/    }
-    /* 响应式布局 */
-    @media (max-width: 800px) {
-      .main-flex { 
-        -webkit-box-orient: vertical;
-        -webkit-box-direction: normal;
-        -webkit-flex-direction: column;
-        flex-direction: column;
-        gap: 18px;
-      }
-      .main-col { width: 100%; }
-      .container { width: 98vw; min-width: 0; }
-      body { text-align: initial; }
-    }
-      /* 通知提示样式 */
-    .notification {
-      position: fixed;
-      top: 30px;
-      left: 50%;
-      transform: translateX(-50%);      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: #fff;
-      border-radius: 10px;
-      padding: 16px 20px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-      max-width: 600px;
-      min-width: 300px;
-      width: auto;
-      z-index: 1000;
-      opacity: 0;
-      transition: opacity 0.3s, transform 0.3s;
-      pointer-events: none;
-      align-items: center;
-    }
-    
-    .notification.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-      pointer-events: auto;
-    }
-    
-    .notification.hidden {
-      opacity: 0;
-      transform: translateX(-50%) translateY(20px);
-    }
-    
-    .notification-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 32px;
-      height: 32px;
-      border-radius: 16px;
-      background: #ffe9e9;
-      color: #e74c3c;
-    }
-    
-    .notification-message {
-      font-size: 0.95rem;
-      color: #333;
-      text-align: left;
-    }
+@media (max-width: 1739px) {
+  .results-panel {
+    top: calc(100% + 30px);
+    right: 0;
+  }
+}
+
+.results-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #333;
+}
+.results-group {
+  margin-bottom: 16px;
+}
+.results-group-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #444;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #eee;
+}
+.results-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+.results-item.total {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+/* Page Titles */
+.main-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 32px;
+  letter-spacing: -1px;
+  color: #181818;
+  text-align: center;
+}
+.subtitle-note {
+  font-size: 1rem;
+  color: #7a869a;
+  margin: -25px 0 25px;
+  text-align: center;
+}
+
+/* Form Rows */
+.item-row {
+  display: inline-flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-bottom: 1px solid #ececec;
+  width: 100%;
+  gap: 16px;
+}
+.item-row:last-of-type {
+  border-bottom: none;
+}
+.item-labels {
+  flex: 1;
+  text-align: left;
+}
+.item-title {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #222;
+}
+.item-desc {
+  font-size: 0.95em;
+  color: #8a94a6;
+  font-weight: 400;
+  line-height: 1.3;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.item-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.item-price {
+  font-size: 1.08em;
+  color: #0071e3;
+  font-weight: 600;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+
+/* Quantity Selector */
+.quantity-selector {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #e5e5ea;
+  border-radius: 20px;
+  background: #f9f9fa;
+  overflow: hidden;
+  height: 30px;
+}
+.quantity-btn {
+  width: 36px;
+  height: 38px;
+  background: none;
+  border: none;
+  font-size: 1.3em;
+  color: #0071e3;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  user-select: none;
+}
+.quantity-btn:active {
+  background: #eaf0ff;
+}
+.quantity-input {
+  width: 24px;
+  background: transparent;
+  border: none;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #181818;
+  padding: 0 4px;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Group Container */
+.group {
+  padding-top: 24px;
+  border-top: 1px solid #ececec;
+  margin-top: 24px;
+}
+.group:first-of-type {
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
+}
+.group-title {
+  font-size: 1.13em;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 14px;
+  letter-spacing: -0.5px;
+}
+
+/* Note Card */
+.note-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #f5f7fa;
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-top: 36px;
+  font-size: 1em;
+  color: #4a5874;
+  box-shadow: 0 2px 8px rgba(90,110,140,0.04);
+}
+.note-card svg {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  margin-top: 2px;
+  color: #0071e3;
+  opacity: 0.85;
+}
+.note-card div {
+  text-align: left;
+}
+
+/* Price Display */
+.price {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #0071e3;
+  margin-top: 20px;
+  letter-spacing: -1.5px;
+  text-align: right;
+}
+
+/* Main Layout Flex Columns */
+.main-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 32px;
+  margin-bottom: 36px;
+}
+.main-col {
+  flex: 1 1 0;
+  background: #f9f9fa;
+  border-radius: 16px;
+  max-width: 420px;
+  box-shadow: 0 2px 8px rgba(90,110,140,0.04);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.main-svg {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 24px;
+  display: block;
+  filter: drop-shadow(0 4px 16px rgba(0,113,227,0.10));
+}
+
+/* Mobile Warning */
+.mobile-warning {
+  display: none;
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  z-index: 1000;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 30px;
+  border-radius: 20px;
+}
+.mobile-warning-icon {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 20px;
+  color: #0071e3;
+}
+.mobile-warning-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #333;
+}
+.mobile-warning-text {
+  font-size: 1rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1000px) {
+  .container {
+    display: none; /* 隐藏整个 container */
+  }
+
+  .mobile-warning {
+    display: flex; /* 显示 mobile-warning */
+  }
+}
+
+@media (min-width: 1001px) {
+  .mobile-warning {
+    display: none; /* 隐藏 mobile-warning */
+  }
+}
+
+/* Notification */
+.notification {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  max-width: 600px;
+  min-width: 300px;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+}
+.notification.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+.notification.hidden {
+  opacity: 0;
+  transform: translate(-50%, 20px);
+}
+.notification-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  background: #ffe9e9;
+  color: #e74c3c;
+}
+.notification-message {
+  font-size: 0.95rem;
+  color: #333;
+}
+
   </style>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
+  <!-- Mobile Warning -->
+  <div class="mobile-warning">
+    <svg class="mobile-warning-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 8V13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M12 16V16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M3.5 7.5C5.5 3.5 7.5 2 12 2C16.5 2 18.5 3.5 20.5 7.5C22.5 11.5 22 15 20.5 17.5C19 20 16.5 22 12 22C7.5 22 5 20 3.5 17.5C2 15 1.5 11.5 3.5 7.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <div class="mobile-warning-title">小さな画面への対応を設計中です</div>
+    <div class="mobile-warning-text">
+      PCでご覧いただくか、タブレットの場合は横向きにしてご利用ください。
+    </div>
+  </div>
+
   <div class="container">
     <h1 class="main-title">LINK ランニング費用</h1>
     <div class="subtitle-note">本ページでは、月々のランニングコストのみを計算しており、導入費用は含まれておりません。</div>
@@ -595,6 +609,22 @@
     const exportBtn = document.getElementById('exportExcelBtn');
     const notification = document.getElementById('notification');
     const notificationMessage = document.getElementById('notification-message');
+    const mobileWarning = document.querySelector('.mobile-warning');
+
+    // Check screen width on load and resize
+    function checkScreenWidth() {
+      if (window.innerWidth < 1000) {
+        mobileWarning.style.display = 'flex';
+      } else {
+        mobileWarning.style.display = 'none';
+      }
+    }
+
+    // Run on page load
+    checkScreenWidth();
+
+    // Add resize event listener
+    window.addEventListener('resize', checkScreenWidth);
 
     // 保存初始值，用于确定用户是否有修改
     const initialValues = {
