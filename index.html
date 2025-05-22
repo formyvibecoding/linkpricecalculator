@@ -46,15 +46,16 @@
       background: #fff;
       border-radius: 20px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+      box-sizing: border-box;
 
       /* 关键三行 */
-      flex: 0 0 auto;  /* 关闭 flex 的自动拉伸 */
+      flex: 0 1 auto;  /* 关闭 flex 的自动拉伸 */
       width: auto;     /* 宽度随内容走 */
-      display: inline-block;
+      max-width: 100%; /* 限制最大宽度，防止过宽 */
 
       /* 其它属性 */
       min-width: 340px;
-      padding: 24px 36px 36px 36px;
+      padding: 24px 36px 36px 36px; /* 上下左右内边距 */
       position: relative;
       /* iOS 安全区域适配 */
       padding-left: calc(36px + env(safe-area-inset-left));
@@ -242,6 +243,7 @@
       padding: 24px 0 0 0;
       border-top: 1px solid #ececec;
       margin-top: 24px;
+      width: 100%;
     }
     .group:first-of-type {
       border-top: none;
@@ -259,6 +261,11 @@
       padding-left: 2px;
       text-align: left;
     }
+    @media (max-width: 600px) {
+  .item-row {
+    flex-direction: column;  /* 在窄屏上改成垂直排列 */
+  }
+}
     /* 说明卡片 */
     .note-card {
       display: flex;
@@ -352,6 +359,7 @@
       padding: 16px 20px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.15);
       max-width: 600px;
+      min-width: 300px;
       width: auto;
       z-index: 1000;
       opacity: 0;
